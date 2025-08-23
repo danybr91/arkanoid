@@ -129,10 +129,43 @@ def draw_pause(message):
     text_rect = pause_text.get_rect(center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
     screen.blit(pause_text, text_rect)
 
+# Variables para el mensaje de depuración
+debug_message = None
+debug_ticks = 0
+
+def draw_message(message, ticks):
+    global debug_message, debug_ticks
+    debug_message = message
+    debug_ticks = ticks
+
+def draw_debug_message():
+    global debug_message, debug_ticks
+    if debug_message and debug_ticks > 0:
+        # Crear fuente para el mensaje de depuración (más pequeña que la fuente principal)
+        debug_font = pygame.font.Font(None, 24)
+        debug_text = debug_font.render(debug_message, True, RED)
+        # Dibujar en la esquina inferior izquierda
+        screen.blit(debug_text, [10, SCREEN_HEIGHT - 30])
+        debug_ticks -= 1
+        # Limpiar el mensaje cuando se agota el tiempo
+        if debug_ticks <= 0:
+            debug_message = None
+
+def debug(event):
+    global ball_dx,ball_dy
+    if event.type == pygame.KEYDOWN:
+        if event.key == pygame.K_F1:
+            ball_dy = -ball_dy
+            draw_message("Invertido BALL DY", 60)
+        if event.key == pygame.K_F2:
+            ball_dx = -ball_dx
+            draw_message("Invertido BALL DX", 60)
+
 # Bucle principal del juego
 running = True
 while running:
     for event in pygame.event.get():
+        debug(event)
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.KEYDOWN:
@@ -255,6 +288,10 @@ while running:
             draw_pause(START_MESSAGE)  # Mensaje inicial
         else:
             draw_pause(PAUSE_MESSAGE)  # Mensaje de pausa normal
+    
+    # Dibujar mensaje de depuración si existe
+    draw_debug_message()
+    
     pygame.display.flip()
 
     # Control de FPS
