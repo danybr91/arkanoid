@@ -38,10 +38,19 @@ paddle_y = screen_height - 40
 paddle_dx = 0
 paddle_speed = 5
 
+# Función para resetear la posición de la paleta
+def reset_paddle():
+    global paddle_x
+    paddle_x = screen_width // 2 - paddle_width // 2
+
 # Variables de los ladrillos
 brick_width = 75
 brick_height = 20
 bricks = []
+
+# Posicionar la pelota en la paleta al inicio
+ball_x = paddle_x + paddle_width // 2 - ball_width // 2
+ball_y = paddle_y - ball_width
 
 for row in range(6):
     for col in range(10):
@@ -54,8 +63,8 @@ score = 0
 lives = 3  # Número de vidas
 font = pygame.font.Font(None, 36)
 
-# Variable de pausa
-paused = False
+# Variable de pausa (comenzar en pausa)
+paused = True
 
 # Función para dibujar la pelota
 def draw_ball():
@@ -91,8 +100,8 @@ def reset_ball():
     ball_dy = -3  # Siempre hacia arriba
 
 # Función para mostrar el mensaje de pausa
-def draw_pause():
-    pause_text = font.render("PAUSA - Presiona 'P' para continuar", True, white)
+def draw_pause(message):
+    pause_text = font.render(message, True, white)
     text_rect = pause_text.get_rect(center=(screen_width//2, screen_height//2))
     screen.blit(pause_text, text_rect)
 
@@ -132,7 +141,11 @@ while running:
         draw_bricks()
         draw_score()
         draw_lives()
-        draw_pause()  # Mostrar mensaje de pausa
+        # Mostrar mensaje de pausa apropiado
+        if ball_y == paddle_y - ball_width and lives == 3:
+            draw_pause("Presiona 'P' para comenzar")  # Mensaje inicial
+        else:
+            draw_pause("PAUSA - Presiona 'P' para continuar")  # Mensaje de pausa normal
         pygame.display.flip()
         clock.tick(60)
         continue  # Saltar el resto de la lógica del juego
@@ -162,12 +175,13 @@ while running:
     if ball_y <= 0:
         ball_dy = -ball_dy
     if ball_y >= screen_height - ball_width:
-        # En lugar de terminar el juego, restar una vida y reiniciar la pelota
+        # En lugar de terminar el juego, restar una vida y reiniciar la pelota y la paleta
         lives -= 1
         if lives <= 0:
             running = False  # Fin del juego si no quedan vidas
         else:
-            reset_ball()
+            reset_paddle()  # Resetear la posición de la paleta
+            reset_ball()    # Resetear la posición de la pelota
             # Pausamos el juego
             paused = True
 
@@ -193,7 +207,10 @@ while running:
     draw_lives()  # Dibujar las vidas
     # Mostrar indicador de pausa si el juego está en pausa
     if paused:
-        draw_pause()
+        if ball_y == paddle_y - ball_width and lives == 3:
+            draw_pause("Presiona 'P' para comenzar")  # Mensaje inicial
+        else:
+            draw_pause("PAUSA - Presiona 'P' para continuar")  # Mensaje de pausa normal
     pygame.display.flip()
 
     # Control de FPS
