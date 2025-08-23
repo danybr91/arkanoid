@@ -1,67 +1,83 @@
 import pygame
 import random
 
+# AJUSTES GRÁFICOS
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+FONT_SIZE = 36
+FPS = 60
+
+# AJUSTES DE JUEGO
+INITIAL_LIVES = 3
+
+# AJUSTES DE BOLA
+BALL_WIDTH = 10
+BALL_DX = 3
+BALL_DY = 3
+BALL_SPEED_INCREASE = 2
+
+# AJUSTES DE PALA
+PADDLE_WIDTH = 100
+PADDLE_HEIGHT = 10
+PADDLE_SPEED = 5
+
+# AJUSTES DE BLOQUES
+BRICK_WIDTH = 75
+BRICK_HEIGHT = 20
+
+# CONSTANTES DE TEXTO
+GAME_TITLE = "Juego de Romper Ladrillos"
+SCORE_TEXT = "Puntuación: {}"
+LIVES_TEXT = "Vidas: {}"
+PAUSE_MESSAGE = "PAUSA - Presiona 'P' para continuar"
+START_MESSAGE = "Presiona 'P' para comenzar"
+GAME_OVER_MESSAGE = "GAME OVER - Presiona 'R' para reiniciar o 'Q' para salir"
+
+# COLORES (tuplas)
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+
 # Inicialización de pygame
 pygame.init()
 
-# Dimensiones de la pantalla
-screen_width = 800
-screen_height = 600
-
-# Colores
-white = (255, 255, 255)
-black = (0, 0, 0)
-red = (255, 0, 0)
-green = (0, 255, 0)
-blue = (0, 0, 255)
-
 # Crear la pantalla
-screen = pygame.display.set_mode((screen_width, screen_height))
-pygame.display.set_caption("Juego de Romper Ladrillos")
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption(GAME_TITLE)
 
 # Reloj para controlar la velocidad de actualización de la pantalla
 clock = pygame.time.Clock()
 
 # Variables de la pelota
-ball_width = 10
-ball_x = screen_width // 2 - ball_width // 2
-ball_y = screen_height // 2 - ball_width // 2
-ball_dx = 3
-ball_dy = 3
-ball_speed_increase = 2  # Aumento de velocidad cuando se pulsa 'C'
+ball_x = SCREEN_WIDTH // 2 - BALL_WIDTH // 2
+ball_y = SCREEN_HEIGHT // 2 - BALL_WIDTH // 2
+ball_dx = BALL_DX
+ball_dy = BALL_DY
 
 # Variables de la paleta
-paddle_width = 100
-paddle_height = 10
-paddle_x = screen_width // 2 - paddle_width // 2
-paddle_y = screen_height - 40
+paddle_x = SCREEN_WIDTH // 2 - PADDLE_WIDTH // 2
+paddle_y = SCREEN_HEIGHT - 40
 paddle_dx = 0
-paddle_speed = 5
-
-# Función para resetear la posición de la paleta
-def reset_paddle():
-    global paddle_x
-    paddle_x = screen_width // 2 - paddle_width // 2
 
 # Variables de los ladrillos
-brick_width = 75
-brick_height = 20
 bricks = []
 
 # Posicionar la pelota en la paleta al inicio
-ball_x = paddle_x + paddle_width // 2 - ball_width // 2
-ball_y = paddle_y - ball_width
+ball_x = paddle_x + PADDLE_WIDTH // 2 - BALL_WIDTH // 2
+ball_y = paddle_y - BALL_WIDTH
 
 for row in range(6):
     for col in range(10):
-        brick_x = col * (brick_width + 10) + 35
-        brick_y = row * (brick_height + 10) + 50
-        bricks.append(pygame.Rect(brick_x, brick_y, brick_width, brick_height))
+        brick_x = col * (BRICK_WIDTH + 10) + 35
+        brick_y = row * (BRICK_HEIGHT + 10) + 50
+        bricks.append(pygame.Rect(brick_x, brick_y, BRICK_WIDTH, BRICK_HEIGHT))
 
 # Variables de puntuación y vidas
 score = 0
-lives = 3  # Número de vidas
-font = pygame.font.Font(None, 36)
+lives = INITIAL_LIVES
+font = pygame.font.Font(None, FONT_SIZE)
 
 # Variable de pausa (comenzar en pausa)
 paused = True
@@ -69,43 +85,48 @@ paused = True
 # Variable para indicar si el juego ha terminado
 game_over = False
 
+# Función para resetear la posición de la paleta
+def reset_paddle():
+    global paddle_x
+    paddle_x = SCREEN_WIDTH // 2 - PADDLE_WIDTH // 2
+
 # Función para dibujar la pelota
 def draw_ball():
-    pygame.draw.ellipse(screen, white, [ball_x, ball_y, ball_width, ball_width])
+    pygame.draw.ellipse(screen, WHITE, [ball_x, ball_y, BALL_WIDTH, BALL_WIDTH])
 
 # Función para dibujar la paleta
 def draw_paddle():
-    pygame.draw.rect(screen, blue, [paddle_x, paddle_y, paddle_width, paddle_height])
+    pygame.draw.rect(screen, BLUE, [paddle_x, paddle_y, PADDLE_WIDTH, PADDLE_HEIGHT])
 
 # Función para dibujar los ladrillos
 def draw_bricks():
     for brick in bricks:
-        pygame.draw.rect(screen, green, brick)
+        pygame.draw.rect(screen, GREEN, brick)
 
 # Función para dibujar la puntuación
 def draw_score():
-    score_text = font.render(f"Puntuación: {score}", True, white)
+    score_text = font.render(SCORE_TEXT.format(score), True, WHITE)
     screen.blit(score_text, [10, 10])
 
 # Función para dibujar las vidas
 def draw_lives():
-    lives_text = font.render(f"Vidas: {lives}", True, white)
-    screen.blit(lives_text, [screen_width - 100, 10])
+    lives_text = font.render(LIVES_TEXT.format(lives), True, WHITE)
+    screen.blit(lives_text, [SCREEN_WIDTH - 100, 10])
 
 # Función para reiniciar la posición de la pelota
 def reset_ball():
     global ball_x, ball_y, ball_dx, ball_dy
     # Posicionar la pelota justo encima de la paleta
-    ball_x = paddle_x + paddle_width // 2 - ball_width // 2
-    ball_y = paddle_y - ball_width
+    ball_x = paddle_x + PADDLE_WIDTH // 2 - BALL_WIDTH // 2
+    ball_y = paddle_y - BALL_WIDTH
     # La pelota siempre va hacia arriba al reiniciar
-    ball_dx = 3 * random.choice([-1, 1])
-    ball_dy = -3  # Siempre hacia arriba
+    ball_dx = BALL_DX * random.choice([-1, 1])
+    ball_dy = -BALL_DX  # Siempre hacia arriba
 
 # Función para mostrar el mensaje de pausa
 def draw_pause(message):
-    pause_text = font.render(message, True, white)
-    text_rect = pause_text.get_rect(center=(screen_width//2, screen_height//2))
+    pause_text = font.render(message, True, WHITE)
+    text_rect = pause_text.get_rect(center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
     screen.blit(pause_text, text_rect)
 
 # Bucle principal del juego
@@ -117,19 +138,19 @@ while running:
         elif event.type == pygame.KEYDOWN:
             # Movimiento con flechas
             if event.key == pygame.K_LEFT:
-                paddle_dx = -paddle_speed
+                paddle_dx = -PADDLE_SPEED
             elif event.key == pygame.K_RIGHT:
-                paddle_dx = paddle_speed
+                paddle_dx = PADDLE_SPEED
             # Movimiento con teclas A y D
             elif event.key == pygame.K_a:
-                paddle_dx = -paddle_speed
+                paddle_dx = -PADDLE_SPEED
             elif event.key == pygame.K_d:
-                paddle_dx = paddle_speed
+                paddle_dx = PADDLE_SPEED
             elif event.key == pygame.K_p and not game_over:  # Tecla para pausar/despausar (solo si no es game over)
                 paused = not paused
             elif event.key == pygame.K_r and game_over:  # Tecla para reiniciar (solo si es game over)
                 # Reiniciar el juego
-                lives = 3
+                lives = INITIAL_LIVES
                 score = 0
                 reset_paddle()
                 reset_ball()
@@ -148,7 +169,7 @@ while running:
     # Si el juego está pausado, solo dibujamos y continuamos el bucle
     if paused:
         # Dibujar todo
-        screen.fill(black)
+        screen.fill(BLACK)
         # Solo dibujar la pelota si no es game over
         if not game_over:
             draw_ball()
@@ -158,20 +179,20 @@ while running:
         draw_lives()
         # Mostrar mensaje apropiado según el estado del juego
         if game_over:
-            draw_pause("GAME OVER - Presiona 'R' para reiniciar o 'Q' para salir")
-        elif ball_y == paddle_y - ball_width and lives == 3:
-            draw_pause("Presiona 'P' para comenzar")  # Mensaje inicial
+            draw_pause(GAME_OVER_MESSAGE)
+        elif ball_y == paddle_y - BALL_WIDTH and lives == INITIAL_LIVES:
+            draw_pause(START_MESSAGE)  # Mensaje inicial
         else:
-            draw_pause("PAUSA - Presiona 'P' para continuar")  # Mensaje de pausa normal
+            draw_pause(PAUSE_MESSAGE)  # Mensaje de pausa normal
         pygame.display.flip()
-        clock.tick(60)
+        clock.tick(FPS)
         continue  # Saltar el resto de la lógica del juego
 
     # Verificar si se está presionando 'C'
     keys = pygame.key.get_pressed()
     if keys[pygame.K_c]:
-        current_ball_dx = ball_dx * ball_speed_increase
-        current_ball_dy = ball_dy * ball_speed_increase
+        current_ball_dx = ball_dx * BALL_SPEED_INCREASE
+        current_ball_dy = ball_dy * BALL_SPEED_INCREASE
     else:
         current_ball_dx = ball_dx
         current_ball_dy = ball_dy
@@ -180,18 +201,18 @@ while running:
     paddle_x += paddle_dx
     if paddle_x < 0:
         paddle_x = 0
-    elif paddle_x > screen_width - paddle_width:
-        paddle_x = screen_width - paddle_width
+    elif paddle_x > SCREEN_WIDTH - PADDLE_WIDTH:
+        paddle_x = SCREEN_WIDTH - PADDLE_WIDTH
 
     # Actualización de la posición de la pelota
     ball_x += current_ball_dx
     ball_y += current_ball_dy
 
-    if ball_x <= 0 or ball_x >= screen_width - ball_width:
+    if ball_x <= 0 or ball_x >= SCREEN_WIDTH - BALL_WIDTH:
         ball_dx = -ball_dx
     if ball_y <= 0:
         ball_dy = -ball_dy
-    if ball_y >= screen_height - ball_width:
+    if ball_y >= SCREEN_HEIGHT - BALL_WIDTH:
         # En lugar de terminar el juego, restar una vida y reiniciar la pelota y la paleta
         lives -= 1
         if lives <= 0:
@@ -204,23 +225,24 @@ while running:
             paused = True
 
     # Colisión con la paleta
-    if paddle_y < ball_y + ball_width and paddle_y + paddle_height > ball_y:
-        if paddle_x < ball_x + ball_width and paddle_x + paddle_width > ball_x:
+    if paddle_y < ball_y + BALL_WIDTH and paddle_y + PADDLE_HEIGHT > ball_y:
+        if paddle_x < ball_x + BALL_WIDTH and paddle_x + PADDLE_WIDTH > ball_x:
             ball_dy = -ball_dy
 
     # Colisión con los ladrillos
     for brick in bricks[:]:
-        if brick.colliderect(pygame.Rect(ball_x, ball_y, ball_width, ball_width)):
+        if brick.colliderect(pygame.Rect(ball_x, ball_y, BALL_WIDTH, BALL_WIDTH)):
             bricks.remove(brick)
             ball_dy = -ball_dy
             score += 10  # Incrementar puntuación al destruir un ladrillo
             break
 
     # Dibujar todo
-    screen.fill(black)
+    screen.fill(BLACK)
     # Solo dibujar la pelota si no es game over
     if not game_over:
         draw_ball()
+
     draw_paddle()
     draw_bricks()
     draw_score()
@@ -228,14 +250,14 @@ while running:
     # Mostrar indicador de pausa si el juego está en pausa
     if paused:
         if game_over:
-            draw_pause("GAME OVER - Presiona 'R' para reiniciar o 'Q' para salir")
-        elif ball_y == paddle_y - ball_width and lives == 3:
-            draw_pause("Presiona 'P' para comenzar")  # Mensaje inicial
+            draw_pause(GAME_OVER_MESSAGE)
+        elif ball_y == paddle_y - BALL_WIDTH and lives == INITIAL_LIVES:
+            draw_pause(START_MESSAGE)  # Mensaje inicial
         else:
-            draw_pause("PAUSA - Presiona 'P' para continuar")  # Mensaje de pausa normal
+            draw_pause(PAUSE_MESSAGE)  # Mensaje de pausa normal
     pygame.display.flip()
 
     # Control de FPS
-    clock.tick(60)
+    clock.tick(FPS)
 
 pygame.quit()
