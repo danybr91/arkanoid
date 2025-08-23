@@ -158,6 +158,8 @@ while running:
             running = False  # Fin del juego si no quedan vidas
         else:
             reset_ball()
+            # Pausamos el juego
+            paused = True
 
     # Colisión con la paleta
     if paddle_y < ball_y + ball_width and paddle_y + paddle_height > ball_y:
