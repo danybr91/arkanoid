@@ -49,8 +49,9 @@ for row in range(6):
         brick_y = row * (brick_height + 10) + 50
         bricks.append(pygame.Rect(brick_x, brick_y, brick_width, brick_height))
 
-# Variable de puntuación
+# Variables de puntuación y vidas
 score = 0
+lives = 3  # Número de vidas
 font = pygame.font.Font(None, 36)
 
 # Función para dibujar la pelota
@@ -70,6 +71,21 @@ def draw_bricks():
 def draw_score():
     score_text = font.render(f"Puntuación: {score}", True, white)
     screen.blit(score_text, [10, 10])
+
+# Función para dibujar las vidas
+def draw_lives():
+    lives_text = font.render(f"Vidas: {lives}", True, white)
+    screen.blit(lives_text, [screen_width - 100, 10])
+
+# Función para reiniciar la posición de la pelota
+def reset_ball():
+    global ball_x, ball_y, ball_dx, ball_dy
+    # Posicionar la pelota justo encima de la paleta
+    ball_x = paddle_x + paddle_width // 2 - ball_width // 2
+    ball_y = paddle_y - ball_width
+    # La pelota siempre va hacia arriba al reiniciar
+    ball_dx = 3 * random.choice([-1, 1])
+    ball_dy = -3  # Siempre hacia arriba
 
 # Bucle principal del juego
 running = True
@@ -111,7 +127,12 @@ while running:
     if ball_y <= 0:
         ball_dy = -ball_dy
     if ball_y >= screen_height - ball_width:
-        running = False  # Fin del juego si la pelota toca el fondo
+        # En lugar de terminar el juego, restar una vida y reiniciar la pelota
+        lives -= 1
+        if lives <= 0:
+            running = False  # Fin del juego si no quedan vidas
+        else:
+            reset_ball()
 
     # Colisión con la paleta
     if paddle_y < ball_y + ball_width and paddle_y + paddle_height > ball_y:
@@ -132,6 +153,7 @@ while running:
     draw_paddle()
     draw_bricks()
     draw_score()
+    draw_lives()  # Dibujar las vidas
     pygame.display.flip()
 
     # Control de FPS
