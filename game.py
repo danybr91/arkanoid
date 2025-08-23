@@ -66,6 +66,9 @@ font = pygame.font.Font(None, 36)
 # Variable de pausa (comenzar en pausa)
 paused = True
 
+# Variable para indicar si el juego ha terminado
+game_over = False
+
 # Función para dibujar la pelota
 def draw_ball():
     pygame.draw.ellipse(screen, white, [ball_x, ball_y, ball_width, ball_width])
@@ -122,8 +125,18 @@ while running:
                 paddle_dx = -paddle_speed
             elif event.key == pygame.K_d:
                 paddle_dx = paddle_speed
-            elif event.key == pygame.K_p:  # Tecla para pausar/despausar
+            elif event.key == pygame.K_p and not game_over:  # Tecla para pausar/despausar (solo si no es game over)
                 paused = not paused
+            elif event.key == pygame.K_r and game_over:  # Tecla para reiniciar (solo si es game over)
+                # Reiniciar el juego
+                lives = 3
+                score = 0
+                reset_paddle()
+                reset_ball()
+                game_over = False
+                paused = True  # Volver a pausar al inicio
+            elif event.key == pygame.K_q and game_over:  # Tecla para salir (solo si es game over)
+                running = False
         elif event.type == pygame.KEYUP:
             # Detener movimiento con flechas
             if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
@@ -136,13 +149,17 @@ while running:
     if paused:
         # Dibujar todo
         screen.fill(black)
-        draw_ball()
+        # Solo dibujar la pelota si no es game over
+        if not game_over:
+            draw_ball()
         draw_paddle()
         draw_bricks()
         draw_score()
         draw_lives()
-        # Mostrar mensaje de pausa apropiado
-        if ball_y == paddle_y - ball_width and lives == 3:
+        # Mostrar mensaje apropiado según el estado del juego
+        if game_over:
+            draw_pause("GAME OVER - Presiona 'R' para reiniciar o 'Q' para salir")
+        elif ball_y == paddle_y - ball_width and lives == 3:
             draw_pause("Presiona 'P' para comenzar")  # Mensaje inicial
         else:
             draw_pause("PAUSA - Presiona 'P' para continuar")  # Mensaje de pausa normal
@@ -178,7 +195,8 @@ while running:
         # En lugar de terminar el juego, restar una vida y reiniciar la pelota y la paleta
         lives -= 1
         if lives <= 0:
-            running = False  # Fin del juego si no quedan vidas
+            game_over = True  # Marcar que el juego ha terminado
+            paused = True     # Pausar el juego
         else:
             reset_paddle()  # Resetear la posición de la paleta
             reset_ball()    # Resetear la posición de la pelota
@@ -200,14 +218,18 @@ while running:
 
     # Dibujar todo
     screen.fill(black)
-    draw_ball()
+    # Solo dibujar la pelota si no es game over
+    if not game_over:
+        draw_ball()
     draw_paddle()
     draw_bricks()
     draw_score()
     draw_lives()  # Dibujar las vidas
     # Mostrar indicador de pausa si el juego está en pausa
     if paused:
-        if ball_y == paddle_y - ball_width and lives == 3:
+        if game_over:
+            draw_pause("GAME OVER - Presiona 'R' para reiniciar o 'Q' para salir")
+        elif ball_y == paddle_y - ball_width and lives == 3:
             draw_pause("Presiona 'P' para comenzar")  # Mensaje inicial
         else:
             draw_pause("PAUSA - Presiona 'P' para continuar")  # Mensaje de pausa normal
