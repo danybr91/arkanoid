@@ -54,6 +54,9 @@ score = 0
 lives = 3  # Número de vidas
 font = pygame.font.Font(None, 36)
 
+# Variable de pausa
+paused = False
+
 # Función para dibujar la pelota
 def draw_ball():
     pygame.draw.ellipse(screen, white, [ball_x, ball_y, ball_width, ball_width])
@@ -87,6 +90,12 @@ def reset_ball():
     ball_dx = 3 * random.choice([-1, 1])
     ball_dy = -3  # Siempre hacia arriba
 
+# Función para mostrar el mensaje de pausa
+def draw_pause():
+    pause_text = font.render("PAUSA - Presiona 'P' para continuar", True, white)
+    text_rect = pause_text.get_rect(center=(screen_width//2, screen_height//2))
+    screen.blit(pause_text, text_rect)
+
 # Bucle principal del juego
 running = True
 while running:
@@ -98,9 +107,25 @@ while running:
                 paddle_dx = -paddle_speed
             elif event.key == pygame.K_RIGHT:
                 paddle_dx = paddle_speed
+            elif event.key == pygame.K_p:  # Tecla para pausar/despausar
+                paused = not paused
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
                 paddle_dx = 0
+
+    # Si el juego está pausado, solo dibujamos y continuamos el bucle
+    if paused:
+        # Dibujar todo
+        screen.fill(black)
+        draw_ball()
+        draw_paddle()
+        draw_bricks()
+        draw_score()
+        draw_lives()
+        draw_pause()  # Mostrar mensaje de pausa
+        pygame.display.flip()
+        clock.tick(60)
+        continue  # Saltar el resto de la lógica del juego
 
     # Verificar si se está presionando 'C'
     keys = pygame.key.get_pressed()
@@ -154,6 +179,9 @@ while running:
     draw_bricks()
     draw_score()
     draw_lives()  # Dibujar las vidas
+    # Mostrar indicador de pausa si el juego está en pausa
+    if paused:
+        draw_pause()
     pygame.display.flip()
 
     # Control de FPS
