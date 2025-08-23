@@ -103,14 +103,24 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.KEYDOWN:
+            # Movimiento con flechas
             if event.key == pygame.K_LEFT:
                 paddle_dx = -paddle_speed
             elif event.key == pygame.K_RIGHT:
                 paddle_dx = paddle_speed
+            # Movimiento con teclas A y D
+            elif event.key == pygame.K_a:
+                paddle_dx = -paddle_speed
+            elif event.key == pygame.K_d:
+                paddle_dx = paddle_speed
             elif event.key == pygame.K_p:  # Tecla para pausar/despausar
                 paused = not paused
         elif event.type == pygame.KEYUP:
+            # Detener movimiento con flechas
             if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
+                paddle_dx = 0
+            # Detener movimiento con teclas A y D
+            elif event.key == pygame.K_a or event.key == pygame.K_d:
                 paddle_dx = 0
 
     # Si el juego está pausado, solo dibujamos y continuamos el bucle
