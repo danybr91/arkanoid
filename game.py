@@ -20,6 +20,7 @@ BALL_SPEED_INCREASE = 2
 PADDLE_WIDTH = 100
 PADDLE_HEIGHT = 10
 PADDLE_SPEED = 5
+PADDLE_SPEED_BOOST = 8  # Velocidad con boost (shift)
 
 # AJUSTES DE BLOQUES
 BRICK_WIDTH = 75
@@ -192,14 +193,14 @@ while running:
         elif event.type == pygame.KEYDOWN:
             # Movimiento con flechas
             if event.key == pygame.K_LEFT:
-                paddle_dx = -PADDLE_SPEED
+                paddle_dx = -1
             elif event.key == pygame.K_RIGHT:
-                paddle_dx = PADDLE_SPEED
+                paddle_dx = 1
             # Movimiento con teclas A y D
             elif event.key == pygame.K_a:
-                paddle_dx = -PADDLE_SPEED
+                paddle_dx = -1
             elif event.key == pygame.K_d:
-                paddle_dx = PADDLE_SPEED
+                paddle_dx = 1
             elif event.key == pygame.K_p and not game_over:  # Tecla para pausar/despausar (solo si no es game over)
                 if not game_started:
                     game_started = True
@@ -254,8 +255,11 @@ while running:
         current_ball_dx = ball_dx
         current_ball_dy = ball_dy
 
+    # Determinar velocidad de la paleta según si se presiona SHIFT
+    current_paddle_speed = PADDLE_SPEED_BOOST if keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT] else PADDLE_SPEED
+
     # Actualización de la posición de la paleta
-    paddle_x += paddle_dx
+    paddle_x += paddle_dx * current_paddle_speed  # Ajustar velocidad según boost
     if paddle_x < 0:
         paddle_x = 0
     elif paddle_x > SCREEN_WIDTH - PADDLE_WIDTH:
