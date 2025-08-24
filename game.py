@@ -37,8 +37,22 @@ GAME_OVER_MESSAGE = "GAME OVER - Presiona 'R' para reiniciar o 'Q' para salir"
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
+ORANGE = (255, 165, 0)
+YELLOW = (255, 255, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
+INDIGO = (75, 0, 130)
+
+
+# Colores para los ladrillos por filas
+BRICK_COLORS = [
+    RED,
+    ORANGE,
+    YELLOW,
+    GREEN,
+    BLUE,
+    INDIGO
+]
 
 # Inicialización de pygame
 pygame.init()
@@ -68,12 +82,6 @@ bricks = []
 ball_x = paddle_x + PADDLE_WIDTH // 2 - BALL_WIDTH // 2
 ball_y = paddle_y - BALL_WIDTH
 
-for row in range(6):
-    for col in range(10):
-        brick_x = col * (BRICK_WIDTH + 10) + 35
-        brick_y = row * (BRICK_HEIGHT + 10) + 50
-        bricks.append(pygame.Rect(brick_x, brick_y, BRICK_WIDTH, BRICK_HEIGHT))
-
 # Variables de puntuación y vidas
 score = 0
 lives = INITIAL_LIVES
@@ -84,6 +92,16 @@ paused = True
 
 # Variable para indicar si el juego ha terminado
 game_over = False
+
+# Niveles
+
+# Nivel 1
+for row in range(6):
+    for col in range(10):
+        brick_x = col * (BRICK_WIDTH + 10) + 35
+        brick_y = row * (BRICK_HEIGHT + 10) + 50
+        brick_rect = pygame.Rect(brick_x, brick_y, BRICK_WIDTH, BRICK_HEIGHT)
+        bricks.append((brick_rect, BRICK_COLORS[row]))  # Almacenar rectángulo y color
 
 # Función para resetear la posición de la paleta
 def reset_paddle():
@@ -100,8 +118,8 @@ def draw_paddle():
 
 # Función para dibujar los ladrillos
 def draw_bricks():
-    for brick in bricks:
-        pygame.draw.rect(screen, GREEN, brick)
+    for brick, color in bricks:
+        pygame.draw.rect(screen, color, brick)
 
 # Función para dibujar la puntuación
 def draw_score():
@@ -264,7 +282,7 @@ while running:
 
     # Colisión con los ladrillos
     for brick in bricks[:]:
-        if brick.colliderect(pygame.Rect(ball_x, ball_y, BALL_WIDTH, BALL_WIDTH)):
+        if brick[0].colliderect(pygame.Rect(ball_x, ball_y, BALL_WIDTH, BALL_WIDTH)):
             bricks.remove(brick)
             ball_dy = -ball_dy
             score += 10  # Incrementar puntuación al destruir un ladrillo
