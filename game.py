@@ -186,22 +186,47 @@ def debug(event):
 # Bucle principal del juego
 running = True
 while running:
+    # Velocidad y dirección de la bola
+    current_ball_dx = ball_dx
+    current_ball_dy = ball_dy
+    # Velocidad y dirección de la pala
+    paddle_dx = 0
+    # Determinar velocidad de la paleta según si se presiona SHIFT
+    current_paddle_speed = PADDLE_SPEED
+
+    # Eventos de teclado
+    keys = pygame.key.get_pressed()
+
+    # Boost de la bola
+    if keys[pygame.K_c]: 
+        current_ball_dx = ball_dx * BALL_SPEED_INCREASE
+        current_ball_dy = ball_dy * BALL_SPEED_INCREASE
+
+    # Determinar velocidad de la paleta según si se presiona SHIFT
+    if keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]: 
+        current_paddle_speed = PADDLE_SPEED_BOOST
+
+    # Determinar dirección de la paleta basada en el estado actual de las teclas
+    if keys[pygame.K_LEFT] or keys[pygame.K_a]:
+        # Solo izquierda presionada
+        paddle_dx = -1
+    if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+        # Si paddle_dx es diferente de 0, es que ya tiene dirección
+        if paddle_dx == 0:
+            # Solo derecha presionada
+            paddle_dx = 1
+        else:
+            # Esto es que ambas direcciones han sido presionadas. Bloqueamos la pala.
+            paddle_dx = 0
+
     for event in pygame.event.get():
         debug(event)
         if event.type == pygame.QUIT:
             running = False
-        elif event.type == pygame.KEYDOWN:
-            # Movimiento con flechas
-            if event.key == pygame.K_LEFT:
-                paddle_dx = -1
-            elif event.key == pygame.K_RIGHT:
-                paddle_dx = 1
-            # Movimiento con teclas A y D
-            elif event.key == pygame.K_a:
-                paddle_dx = -1
-            elif event.key == pygame.K_d:
-                paddle_dx = 1
-            elif event.key == pygame.K_p and not game_over:  # Tecla para pausar/despausar (solo si no es game over)
+            break
+        
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_p and not game_over:  # Tecla para pausar/despausar (solo si no es game over)
                 if not game_started:
                     game_started = True
                 paused = not paused
@@ -212,17 +237,10 @@ while running:
                 reset_paddle()
                 reset_ball()
                 game_over = False
-                game_started = False  # Reiniciar el estado del juego
-                paused = True  # Volver a pausar al inicio
+                game_started = False
+                paused = True
             elif event.key == pygame.K_q and game_over:  # Tecla para salir (solo si es game over)
                 running = False
-        elif event.type == pygame.KEYUP:
-            # Detener movimiento con flechas
-            if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
-                paddle_dx = 0
-            # Detener movimiento con teclas A y D
-            elif event.key == pygame.K_a or event.key == pygame.K_d:
-                paddle_dx = 0
 
     # Si el juego está pausado, solo dibujamos y continuamos el bucle
     if paused:
@@ -231,6 +249,7 @@ while running:
         # Solo dibujar la pelota si no es game over
         if not game_over:
             draw_ball()
+
         draw_paddle()
         draw_bricks()
         draw_score()
@@ -245,18 +264,6 @@ while running:
         pygame.display.flip()
         clock.tick(FPS)
         continue  # Saltar el resto de la lógica del juego
-
-    # Verificar si se está presionando 'C'
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_c]:
-        current_ball_dx = ball_dx * BALL_SPEED_INCREASE
-        current_ball_dy = ball_dy * BALL_SPEED_INCREASE
-    else:
-        current_ball_dx = ball_dx
-        current_ball_dy = ball_dy
-
-    # Determinar velocidad de la paleta según si se presiona SHIFT
-    current_paddle_speed = PADDLE_SPEED_BOOST if keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT] else PADDLE_SPEED
 
     # Actualización de la posición de la paleta
     paddle_x += paddle_dx * current_paddle_speed  # Ajustar velocidad según boost
