@@ -276,9 +276,28 @@ while running:
             paused = True
 
     # Colisión con la paleta
-    if paddle_y < ball_y + BALL_WIDTH and paddle_y + PADDLE_HEIGHT > ball_y:
-        if paddle_x < ball_x + BALL_WIDTH and paddle_x + PADDLE_WIDTH > ball_x:
-            ball_dy = -ball_dy
+    paddle_rect = pygame.Rect(paddle_x, paddle_y, PADDLE_WIDTH, PADDLE_HEIGHT)
+    ball_rect = pygame.Rect(ball_x, ball_y, BALL_WIDTH, BALL_WIDTH)
+    
+    if paddle_rect.colliderect(ball_rect) and ball_dy > 0:
+        # Calcular posición relativa del impacto en la paleta (de 0 a 1)
+        relative_impact = (ball_x + BALL_WIDTH/2 - paddle_x) / PADDLE_WIDTH
+        
+        # Zona central plana (sin cambio de ángulo) - del 25% al 75% del ancho
+        if 0.25 <= relative_impact <= 0.75:
+            # Rebote vertical sin cambiar dirección horizontal
+            ball_dy = -abs(ball_dy)
+        else:
+            # Zona de bordes redondeados - cambiar ángulo basado en posición
+            bounce_angle = (relative_impact - 0.5) * 2
+            
+            # Mantener velocidad pero cambiar dirección
+            speed = abs(ball_dy)
+            ball_dx = bounce_angle * speed  # Componente horizontal
+            ball_dy = -abs(ball_dy)  # Siempre hacia arriba
+        
+        # Asegurar que la pelota no se atasque en la paleta
+        ball_y = paddle_y - BALL_WIDTH
 
     # Colisión con los ladrillos
     for brick in bricks[:]:
