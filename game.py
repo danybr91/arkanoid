@@ -23,7 +23,7 @@ PADDLE_SPEED = 5
 PADDLE_SPEED_BOOST = 8  # Velocidad con boost (shift)
 
 # AJUSTES DE BLOQUES
-BRICK_WIDTH = 75
+BRICK_WIDTH = 64
 BRICK_HEIGHT = 20
 
 # CONSTANTES DE TEXTO
@@ -33,6 +33,7 @@ LIVES_TEXT = "Vidas: {}"
 PAUSE_MESSAGE = "PAUSA - Presiona 'P' para continuar"
 START_MESSAGE = "Presiona 'P' para comenzar"
 GAME_OVER_MESSAGE = "GAME OVER - Presiona 'R' para reiniciar o 'Q' para salir"
+VICTORY_MESSAGE = "¡FELICIDADES! ¡HAS GANADO! - Presiona 'R' para reiniciar o 'Q' para salir"
 
 # COLORES (tuplas)
 WHITE = (255, 255, 255)
@@ -43,69 +44,23 @@ YELLOW = (255, 255, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 INDIGO = (75, 0, 130)
-
-
 # Colores para los ladrillos por filas
-BRICK_COLORS = [
-    RED,
-    ORANGE,
-    YELLOW,
-    GREEN,
-    BLUE,
-    INDIGO
-]
-
-# Inicialización de pygame
-pygame.init()
-
-# Crear la pantalla
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption(GAME_TITLE)
-
-# Reloj para controlar la velocidad de actualización de la pantalla
-clock = pygame.time.Clock()
-
-# Variables de la pelota
-ball_x = SCREEN_WIDTH // 2 - BALL_WIDTH // 2
-ball_y = SCREEN_HEIGHT // 2 - BALL_WIDTH // 2
-ball_dx = BALL_DX
-ball_dy = BALL_DY
-
-# Variables de la paleta
-paddle_x = SCREEN_WIDTH // 2 - PADDLE_WIDTH // 2
-paddle_y = SCREEN_HEIGHT - 40
-paddle_dx = 0
-
-# Variables de los ladrillos
-bricks = []
-
-# Posicionar la pelota en la paleta al inicio
-ball_x = paddle_x + PADDLE_WIDTH // 2 - BALL_WIDTH // 2
-ball_y = paddle_y - BALL_WIDTH
-
-# Variables de puntuación y vidas
-score = 0
-lives = INITIAL_LIVES
-font = pygame.font.Font(None, FONT_SIZE)
-
-# Variable de pausa (comenzar en pausa)
-paused = True
-
-# Variable para indicar si el juego ha terminado
-game_over = False
-
-# Variable para indicar si es el inicio del juego
-game_started = False
+BRICK_COLORS = [ RED, ORANGE, YELLOW, GREEN, BLUE, INDIGO ]
 
 # Niveles
+def spawn_level(level : int):
+    global bricks
+    if level == 1:
+        for row in range(6):
+            for col in range(10):
+                brick_x = col * (BRICK_WIDTH + 10) + 35
+                brick_y = row * (BRICK_HEIGHT + 10) + 50
+                brick_rect = pygame.Rect(brick_x, brick_y, BRICK_WIDTH, BRICK_HEIGHT)
+                bricks.append((brick_rect, BRICK_COLORS[row]))  # Almacenar rectángulo y color
 
-# Nivel 1
-for row in range(6):
-    for col in range(10):
-        brick_x = col * (BRICK_WIDTH + 10) + 35
-        brick_y = row * (BRICK_HEIGHT + 10) + 50
-        brick_rect = pygame.Rect(brick_x, brick_y, BRICK_WIDTH, BRICK_HEIGHT)
-        bricks.append((brick_rect, BRICK_COLORS[row]))  # Almacenar rectángulo y color
+def nuke_level():
+    global bricks
+    bricks.clear()
 
 # Función para resetear la posición de la paleta
 def reset_paddle():
@@ -146,14 +101,32 @@ def reset_ball():
     ball_dy = -BALL_DX  # Siempre hacia arriba
 
 # Función para mostrar el mensaje de pausa
-def draw_pause(message):
+def draw_pause_message(message):
     pause_text = font.render(message, True, WHITE)
     text_rect = pause_text.get_rect(center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
     screen.blit(pause_text, text_rect)
 
-# Variables para el mensaje de depuración
-debug_message = None
-debug_ticks = 0
+# Función para dibujar el estado de pausa
+def draw_pause():
+    global screen, game_over
+    # Dibujar todo
+    screen.fill(BLACK)
+    # Solo dibujar la pelota si no es game over
+    if not game_over:
+        draw_ball()
+
+    draw_paddle()
+    draw_bricks()
+    draw_score()
+    draw_lives()
+    # Mostrar mensaje apropiado según el estado del juego
+    if game_over:
+        draw_pause_message(GAME_OVER_MESSAGE)
+    elif not game_started:
+        draw_pause_message(START_MESSAGE)  # Mensaje inicial
+    else:
+        draw_pause_message(PAUSE_MESSAGE)  # Mensaje de pausa normal
+    pygame.display.flip()
 
 def draw_message(message, ticks):
     global debug_message, debug_ticks
@@ -183,9 +156,63 @@ def debug(event):
             ball_dx = -ball_dx
             draw_message("Invertido BALL DX", 60)
 
-# Bucle principal del juego
+# Estado inicial
+# =================================================================================================
+
+# Inicialización de pygame
+pygame.init()
+
+# Crear la pantalla
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption(GAME_TITLE)
+
+# Reloj para controlar la velocidad de actualización de la pantalla
+clock = pygame.time.Clock()
+
+# Variables para el mensaje de depuración
+debug_message = None
+debug_ticks = 0
+
+# Variables de la pelota
+ball_x = SCREEN_WIDTH // 2 - BALL_WIDTH // 2
+ball_y = SCREEN_HEIGHT // 2 - BALL_WIDTH // 2
+ball_dx = BALL_DX
+ball_dy = BALL_DY
+
+# Variables de la paleta
+paddle_x = SCREEN_WIDTH // 2 - PADDLE_WIDTH // 2
+paddle_y = SCREEN_HEIGHT - 40
+paddle_dx = 0
+
+# Variables de los ladrillos
+bricks = []
+spawn_level(1)
+
+# Posicionar la pelota en la paleta al inicio
+ball_x = paddle_x + PADDLE_WIDTH // 2 - BALL_WIDTH // 2
+ball_y = paddle_y - BALL_WIDTH
+
+# Variables de puntuación y vidas
+score = 0
+lives = INITIAL_LIVES
+font = pygame.font.Font(None, FONT_SIZE)
+
+# Variable de pausa (comenzar en pausa)
+paused = True
+
+# Variable para indicar si el juego ha terminado
+game_over = False
+
+# Variable para indicar si es el inicio del juego
+game_started = False
+
 running = True
+
+# Bucle principal del juego
 while running:
+    # Inicio de fase
+    # =================================================================================================
+
     # Velocidad y dirección de la bola
     current_ball_dx = ball_dx
     current_ball_dy = ball_dy
@@ -195,6 +222,7 @@ while running:
     current_paddle_speed = PADDLE_SPEED
 
     # Eventos de teclado
+    # =================================================================================================
     keys = pygame.key.get_pressed()
 
     # Boost de la bola
@@ -239,29 +267,18 @@ while running:
                 game_over = False
                 game_started = False
                 paused = True
+                # Recrear los ladrillos
+                nuke_level()
+                spawn_level(1)
             elif event.key == pygame.K_q and game_over:  # Tecla para salir (solo si es game over)
                 running = False
 
+    # Cálculo de estado
+    # =================================================================================================
+
     # Si el juego está pausado, solo dibujamos y continuamos el bucle
     if paused:
-        # Dibujar todo
-        screen.fill(BLACK)
-        # Solo dibujar la pelota si no es game over
-        if not game_over:
-            draw_ball()
-
-        draw_paddle()
-        draw_bricks()
-        draw_score()
-        draw_lives()
-        # Mostrar mensaje apropiado según el estado del juego
-        if game_over:
-            draw_pause(GAME_OVER_MESSAGE)
-        elif not game_started:
-            draw_pause(START_MESSAGE)  # Mensaje inicial
-        else:
-            draw_pause(PAUSE_MESSAGE)  # Mensaje de pausa normal
-        pygame.display.flip()
+        draw_pause()
         clock.tick(FPS)
         continue  # Saltar el resto de la lógica del juego
 
@@ -324,6 +341,14 @@ while running:
             score += 10  # Incrementar puntuación al destruir un ladrillo
             break
 
+    # Verificar si se han roto todos los bloques (victoria)
+    if len(bricks) == 0 and not game_over:
+        paused = True
+        game_over = True  # Reutilizamos game_over para indicar victoria
+
+    # Dibujado
+    # =================================================================================================
+
     # Dibujar todo
     screen.fill(BLACK)
     # Solo dibujar la pelota si no es game over
@@ -336,18 +361,22 @@ while running:
     draw_lives()  # Dibujar las vidas
     # Mostrar indicador de pausa si el juego está en pausa
     if paused:
-        if game_over:
-            draw_pause(GAME_OVER_MESSAGE)
+        if game_over and len(bricks) == 0:  # Victoria
+            draw_pause_message(VICTORY_MESSAGE)
+        elif game_over:  # Game over por vidas
+            draw_pause_message(GAME_OVER_MESSAGE)
         elif not game_started:
-            draw_pause(START_MESSAGE)  # Mensaje inicial
+            draw_pause_message(START_MESSAGE)  # Mensaje inicial
         else:
-            draw_pause(PAUSE_MESSAGE)  # Mensaje de pausa normal
+            draw_pause_message(PAUSE_MESSAGE)  # Mensaje de pausa normal
     
     # Dibujar mensaje de depuración si existe
     draw_debug_message()
     
-    pygame.display.flip()
+    # Avance de fase
+    # =================================================================================================
 
+    pygame.display.flip()
     # Control de FPS
     clock.tick(FPS)
 
