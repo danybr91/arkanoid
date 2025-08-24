@@ -93,6 +93,9 @@ paused = True
 # Variable para indicar si el juego ha terminado
 game_over = False
 
+# Variable para indicar si es el inicio del juego
+game_started = False
+
 # Niveles
 
 # Nivel 1
@@ -198,6 +201,8 @@ while running:
             elif event.key == pygame.K_d:
                 paddle_dx = PADDLE_SPEED
             elif event.key == pygame.K_p and not game_over:  # Tecla para pausar/despausar (solo si no es game over)
+                if not game_started:
+                    game_started = True
                 paused = not paused
             elif event.key == pygame.K_r and game_over:  # Tecla para reiniciar (solo si es game over)
                 # Reiniciar el juego
@@ -206,6 +211,7 @@ while running:
                 reset_paddle()
                 reset_ball()
                 game_over = False
+                game_started = False  # Reiniciar el estado del juego
                 paused = True  # Volver a pausar al inicio
             elif event.key == pygame.K_q and game_over:  # Tecla para salir (solo si es game over)
                 running = False
@@ -231,7 +237,7 @@ while running:
         # Mostrar mensaje apropiado según el estado del juego
         if game_over:
             draw_pause(GAME_OVER_MESSAGE)
-        elif ball_y == paddle_y - BALL_WIDTH and lives == INITIAL_LIVES:
+        elif not game_started:
             draw_pause(START_MESSAGE)  # Mensaje inicial
         else:
             draw_pause(PAUSE_MESSAGE)  # Mensaje de pausa normal
@@ -321,7 +327,7 @@ while running:
     if paused:
         if game_over:
             draw_pause(GAME_OVER_MESSAGE)
-        elif ball_y == paddle_y - BALL_WIDTH and lives == INITIAL_LIVES:
+        elif not game_started:
             draw_pause(START_MESSAGE)  # Mensaje inicial
         else:
             draw_pause(PAUSE_MESSAGE)  # Mensaje de pausa normal
